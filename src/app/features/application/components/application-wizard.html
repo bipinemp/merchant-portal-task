@@ -1,0 +1,282 @@
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9 col-xl-8">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h3 fw-bold mb-0">{{ applicationId ? 'Edit' : 'New' }} Application</h1>
+      <div class="d-flex align-items-center gap-2">
+        @if (saving()) {
+          <span class="text-muted small">
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>Saving...
+          </span>
+        } @else if (lastSaved()) {
+          <span class="text-success small">Saved at {{ lastSaved() }}</span>
+        }
+        @if (saveError()) {
+          <span class="text-danger small">{{ saveError() }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="stepper mb-4">
+      <div class="d-flex justify-content-between position-relative">
+        <div class="stepper-line"></div>
+        @for (step of steps; track $index) {
+          <div class="stepper-step text-center" [class.active]="currentStep() === $index"
+               [class.completed]="currentStep() > $index"
+               (click)="goToStep($index)" role="button" [attr.aria-label]="step">
+            <div class="stepper-circle">
+              @if (currentStep() > $index) { ✓ } @else { {{ $index + 1 }} }
+            </div>
+            <div class="stepper-label d-none d-sm-block">{{ step }}</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form [formGroup]="form" (ngSubmit)="submit()">
+
+          @if (currentStep() === 0) {
+            <h5 class="fw-bold mb-3">Business Information</h5>
+            <div class="row g-3">
+              <div class="col-12 col-md-8">
+                <label for="businessName" class="form-label">Business Name</label>
+                <input id="businessName" type="text" class="form-control" formControlName="businessName"
+                       [class.is-invalid]="isInvalid('businessName')">
+                @if (isInvalid('businessName')) {
+                  <div class="invalid-feedback">
+                    @if (getControl('businessName')?.errors?.['required']) { Required. }
+                    @if (getControl('businessName')?.errors?.['minlength']) { At least 2 characters. }
+                  </div>
+                }
+              </div>
+              <div class="col-12 col-md-4">
+                <label for="businessType" class="form-label">Business Type</label>
+                <select id="businessType" class="form-select" formControlName="businessType"
+                        [class.is-invalid]="isInvalid('businessType')">
+                  <option value="">Select...</option>
+                  @for (type of businessTypes; track type) {
+                    <option [value]="type">{{ type }}</option>
+                  }
+                </select>
+                @if (isInvalid('businessType')) {
+                  <div class="invalid-feedback">Required.</div>
+                }
+              </div>
+              <div class="col-12 col-md-4">
+                <label for="taxId" class="form-label">Tax ID (EIN)</label>
+                <input id="taxId" type="text" class="form-control" formControlName="taxId" placeholder="12-3456789"
+                       [class.is-invalid]="isInvalid('taxId')">
+                @if (isInvalid('taxId')) {
+                  <div class="invalid-feedback">Format: 12-3456789</div>
+                }
+              </div>
+              <div class="col-12">
+                <label for="street" class="form-label">Street Address</label>
+                <input id="street" type="text" class="form-control" formControlName="street"
+                       [class.is-invalid]="isInvalid('street')">
+                @if (isInvalid('street')) { <div class="invalid-feedback">Required.</div> }
+              </div>
+              <div class="col-12 col-md-5">
+                <label for="city" class="form-label">City</label>
+                <input id="city" type="text" class="form-control" formControlName="city"
+                       [class.is-invalid]="isInvalid('city')">
+                @if (isInvalid('city')) { <div class="invalid-feedback">Required.</div> }
+              </div>
+              <div class="col-6 col-md-3">
+                <label for="state" class="form-label">State</label>
+                <input id="state" type="text" class="form-control" formControlName="state" maxlength="2" placeholder="OR"
+                       [class.is-invalid]="isInvalid('state')">
+                @if (isInvalid('state')) { <div class="invalid-feedback">2-letter code.</div> }
+              </div>
+              <div class="col-6 col-md-4">
+                <label for="zipCode" class="form-label">ZIP Code</label>
+                <input id="zipCode" type="text" class="form-control" formControlName="zipCode" placeholder="97201"
+                       [class.is-invalid]="isInvalid('zipCode')">
+                @if (isInvalid('zipCode')) { <div class="invalid-feedback">5 digits.</div> }
+              </div>
+            </div>
+          }
+
+          @if (currentStep() === 1) {
+            <h5 class="fw-bold mb-3">Contact Information</h5>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label for="firstName" class="form-label">First Name</label>
+                <input id="firstName" type="text" class="form-control" formControlName="firstName"
+                       [class.is-invalid]="isInvalid('firstName')">
+                @if (isInvalid('firstName')) { <div class="invalid-feedback">Required.</div> }
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input id="lastName" type="text" class="form-control" formControlName="lastName"
+                       [class.is-invalid]="isInvalid('lastName')">
+                @if (isInvalid('lastName')) { <div class="invalid-feedback">Required.</div> }
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="contactEmail" class="form-label">Email</label>
+                <input id="contactEmail" type="email" class="form-control" formControlName="email"
+                       [class.is-invalid]="isInvalid('email')">
+                @if (isInvalid('email')) {
+                  <div class="invalid-feedback">
+                    @if (getControl('email')?.errors?.['required']) { Required. }
+                    @if (getControl('email')?.errors?.['email']) { Valid email required. }
+                  </div>
+                }
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="phone" class="form-label">Phone</label>
+                <input id="phone" type="tel" class="form-control" formControlName="phone" placeholder="503-555-0101"
+                       [class.is-invalid]="isInvalid('phone')">
+                @if (isInvalid('phone')) { <div class="invalid-feedback">Format: 503-555-0101</div> }
+              </div>
+            </div>
+          }
+
+          @if (currentStep() === 2) {
+            <h5 class="fw-bold mb-3">Banking Information</h5>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label for="bankName" class="form-label">Bank Name</label>
+                <input id="bankName" type="text" class="form-control" formControlName="bankName"
+                       [class.is-invalid]="isInvalid('bankName')">
+                @if (isInvalid('bankName')) { <div class="invalid-feedback">Required.</div> }
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="accountType" class="form-label">Account Type</label>
+                <select id="accountType" class="form-select" formControlName="accountType">
+                  <option value="checking">Checking</option>
+                  <option value="savings">Savings</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="routingNumber" class="form-label">Routing Number</label>
+                <input id="routingNumber" type="text" class="form-control" formControlName="routingNumber" placeholder="021000021"
+                       [class.is-invalid]="isInvalid('routingNumber')">
+                <div class="form-text text-muted">9-digit bank routing number (e.g. 021000021)</div>
+                @if (isInvalid('routingNumber')) {
+                  <div class="invalid-feedback">
+                    @if (getControl('routingNumber')?.errors?.['required']) { Routing number is required. }
+                    @if (getControl('routingNumber')?.errors?.['invalidRoutingNumber']) { Must be exactly 9 digits. }
+                  </div>
+                }
+              </div>
+              <div class="col-12 col-md-6">
+                <label for="accountNumber" class="form-label">Account Number</label>
+                <input id="accountNumber" type="text" class="form-control" formControlName="accountNumber"
+                       [class.is-invalid]="isInvalid('accountNumber')">
+                @if (isInvalid('accountNumber')) { <div class="invalid-feedback">At least 4 characters.</div> }
+              </div>
+            </div>
+          }
+
+          @if (currentStep() === 3) {
+            <h5 class="fw-bold mb-3">Processing Information</h5>
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <label for="monthlyVolume" class="form-label">Monthly Volume ($)</label>
+                <input id="monthlyVolume" type="number" class="form-control" formControlName="monthlyVolume"
+                       [class.is-invalid]="isInvalid('monthlyVolume')">
+                @if (isInvalid('monthlyVolume')) { <div class="invalid-feedback">Must be greater than 0.</div> }
+              </div>
+              <div class="col-12 col-md-4">
+                <label for="averageTicket" class="form-label">Average Ticket ($)</label>
+                <input id="averageTicket" type="number" class="form-control" formControlName="averageTicket"
+                       [class.is-invalid]="isInvalid('averageTicket')">
+                @if (isInvalid('averageTicket')) { <div class="invalid-feedback">Must be greater than 0.</div> }
+              </div>
+              <div class="col-12 col-md-4">
+                <label for="maxTicket" class="form-label">Max Ticket ($)</label>
+                <input id="maxTicket" type="number" class="form-control" formControlName="maxTicket"
+                       [class.is-invalid]="isInvalid('maxTicket')">
+                @if (isInvalid('maxTicket')) { <div class="invalid-feedback">Must be greater than 0.</div> }
+              </div>
+              <div class="col-12">
+                <label for="businessDescription" class="form-label">Business Description</label>
+                <textarea id="businessDescription" class="form-control" formControlName="businessDescription" rows="4"
+                          [class.is-invalid]="isInvalid('businessDescription')"></textarea>
+                @if (isInvalid('businessDescription')) { <div class="invalid-feedback">At least 10 characters.</div> }
+              </div>
+            </div>
+          }
+
+          @if (currentStep() === 4) {
+            <h5 class="fw-bold mb-3">Review & Submit</h5>
+            <div class="row g-4">
+              <div class="col-12 col-md-6">
+                <div class="card bg-light border-0">
+                  <div class="card-body">
+                    <h6 class="fw-bold text-muted small text-uppercase">Business</h6>
+                    <p class="mb-1"><strong>{{ form.value.businessName }}</strong></p>
+                    <p class="mb-1 small">{{ form.value.businessType }}</p>
+                    <p class="mb-1 small">Tax ID: {{ form.value.taxId }}</p>
+                    <p class="mb-0 small text-muted">
+                      {{ form.value.street }}, {{ form.value.city }}, {{ form.value.state }} {{ form.value.zipCode }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="card bg-light border-0">
+                  <div class="card-body">
+                    <h6 class="fw-bold text-muted small text-uppercase">Contact</h6>
+                    <p class="mb-1">{{ form.value.firstName }} {{ form.value.lastName }}</p>
+                    <p class="mb-1 small">{{ form.value.email }}</p>
+                    <p class="mb-0 small">{{ form.value.phone }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="card bg-light border-0">
+                  <div class="card-body">
+                    <h6 class="fw-bold text-muted small text-uppercase">Banking</h6>
+                    <p class="mb-1">{{ form.value.bankName }}</p>
+                    <p class="mb-1 small">Routing: {{ form.value.routingNumber }}</p>
+                    <p class="mb-1 small">Account: ****{{ form.value.accountNumber?.slice(-4) }}</p>
+                    <p class="mb-0 small text-capitalize">{{ form.value.accountType }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="card bg-light border-0">
+                  <div class="card-body">
+                    <h6 class="fw-bold text-muted small text-uppercase">Processing</h6>
+                    <p class="mb-1 small">Volume: ${{ form.value.monthlyVolume | number }}/mo</p>
+                    <p class="mb-1 small">Avg Ticket: ${{ form.value.averageTicket | number }}</p>
+                    <p class="mb-0 small">Max Ticket: ${{ form.value.maxTicket | number }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top flex-wrap gap-2">
+            <div>
+              @if (currentStep() > 0) {
+                <button type="button" class="btn btn-outline-secondary" (click)="prevStep()">← Back</button>
+              }
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn btn-outline-primary" (click)="saveAsDraft()" [disabled]="savingDraft()">
+                @if (savingDraft()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                }
+                Save as Draft
+              </button>
+              @if (currentStep() < steps.length - 1) {
+                <button type="button" class="btn btn-primary" (click)="nextStep()">Next →</button>
+              } @else {
+                <button type="submit" class="btn btn-success" [disabled]="submitting() || form.invalid">
+                  @if (submitting()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  }
+                  Submit Application
+                </button>
+              }
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

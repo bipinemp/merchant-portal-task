@@ -1,0 +1,32 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" routerLink="/dashboard">
+      Merchant Portal
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarNav" aria-controls="navbarNav"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        </li>
+        @if (auth.hasAnyRole('SALES', 'ADMIN')) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/applications/new" routerLinkActive="active">New Application</a>
+          </li>
+        }
+      </ul>
+      <div class="d-flex align-items-center">
+        <span class="badge bg-light text-primary me-3">{{ auth.user()?.role }}</span>
+        <span class="text-light me-3 d-none d-md-inline">{{ auth.user()?.name }}</span>
+        <button class="btn btn-outline-light btn-sm" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>
+<main class="container-fluid py-4">
+  <router-outlet />
+</main>

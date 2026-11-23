@@ -1,0 +1,226 @@
+@if (loading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+} @else if (error()) {
+  <div class="alert alert-danger">
+    {{ error() }}
+    <button class="btn btn-sm btn-outline-danger ms-2" (click)="goBack()">Go Back</button>
+  </div>
+} @else if (application(); as app) {
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4 gap-3">
+    <div>
+      <button class="btn btn-sm btn-outline-secondary mb-2" (click)="goBack()">← Back</button>
+      <h1 class="h3 fw-bold mb-1">{{ app.businessName }}</h1>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-muted small">{{ app.id }}</span>
+        <span class="badge rounded-pill" [class]="getStatusClass(app.status)">{{ app.status }}</span>
+        @if (app.assignedReviewerId) {
+          <span class="badge bg-light text-dark border">Assigned: {{ app.assignedReviewerId }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom-0 pt-3">
+          <h5 class="fw-bold mb-0">Business Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="detail-label">Business Name</div>
+              <div>{{ app.businessName }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Business Type</div>
+              <div>{{ app.businessType }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Tax ID (EIN)</div>
+              <div>{{ app.taxId | maskSensitive:showSensitive() }}</div>
+            </div>
+            <div class="col-12">
+              <div class="detail-label">Address</div>
+              <div>
+                {{ app.businessAddress.street }}, {{ app.businessAddress.city }},
+                {{ app.businessAddress.state }} {{ app.businessAddress.zipCode }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom-0 pt-3">
+          <h5 class="fw-bold mb-0">Contact Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="detail-label">Name</div>
+              <div>{{ app.contactInfo.firstName }} {{ app.contactInfo.lastName }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Email</div>
+              <div>{{ app.contactInfo.email }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Phone</div>
+              <div>{{ app.contactInfo.phone | maskSensitive:showSensitive():4 }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom-0 pt-3 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0">Banking Information</h5>
+          @if (auth.hasAnyRole('ADMIN', 'REVIEWER')) {
+            <button class="btn btn-sm btn-outline-secondary" (click)="toggleSensitive()">
+              {{ showSensitive() ? 'Hide' : 'Show' }} Sensitive Data
+            </button>
+          }
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="detail-label">Bank Name</div>
+              <div>{{ app.bankingInfo.bankName }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Account Type</div>
+              <div class="text-capitalize">{{ app.bankingInfo.accountType }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Routing Number</div>
+              <div>{{ app.bankingInfo.routingNumber | maskSensitive:showSensitive():4 }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="detail-label">Account Number</div>
+              <div>{{ app.bankingInfo.accountNumber | maskSensitive:showSensitive():4 }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-bottom-0 pt-3">
+          <h5 class="fw-bold mb-0">Processing Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-4">
+              <div class="detail-label">Monthly Volume</div>
+              <div>{{ app.processingInfo.monthlyVolume | currency:'USD':'symbol':'1.0-0' }}</div>
+            </div>
+            <div class="col-sm-4">
+              <div class="detail-label">Average Ticket</div>
+              <div>{{ app.processingInfo.averageTicket | currency:'USD':'symbol':'1.0-0' }}</div>
+            </div>
+            <div class="col-sm-4">
+              <div class="detail-label">Max Ticket</div>
+              <div>{{ app.processingInfo.maxTicket | currency:'USD':'symbol':'1.0-0' }}</div>
+            </div>
+            <div class="col-12">
+              <div class="detail-label">Description</div>
+              <div>{{ app.processingInfo.businessDescription }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      @if (canManageAssignments) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-bottom-0 pt-3">
+            <h5 class="fw-bold mb-0">Manage Assignment</h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="assignForm" (ngSubmit)="assignReviewer()">
+              <div class="mb-3">
+                <label for="assignSelect" class="form-label">Assign To</label>
+                <select id="assignSelect" class="form-select" formControlName="reviewerId">
+                  @for (rev of reviewers; track rev.id) {
+                    <option [value]="rev.id">{{ rev.name }}</option>
+                  }
+                </select>
+              </div>
+              <button type="submit" class="btn btn-outline-primary w-100 btn-sm" [disabled]="assigningReviewer()">
+                @if (assigningReviewer()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                }
+                Update Assignment
+              </button>
+            </form>
+          </div>
+        </div>
+      }
+
+      @if (canReview && isReviewable) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-bottom-0 pt-3">
+            <h5 class="fw-bold mb-0">Submit Review</h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+              <div class="mb-3">
+                <label for="decisionSelect" class="form-label">Decision</label>
+                <select id="decisionSelect" class="form-select" formControlName="decision">
+                  <option value="APPROVED">Approve</option>
+                  <option value="REJECTED">Reject</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="reviewNotes" class="form-label">Notes</label>
+                <textarea id="reviewNotes" class="form-control" formControlName="notes" rows="4"
+                          [class.is-invalid]="reviewForm.controls.notes.touched && reviewForm.controls.notes.invalid"></textarea>
+                @if (reviewForm.controls.notes.touched && reviewForm.controls.notes.invalid) {
+                  <div class="invalid-feedback">At least 5 characters required.</div>
+                }
+              </div>
+              <button type="submit" class="btn btn-primary w-100" [disabled]="submittingReview()">
+                @if (submittingReview()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                }
+                Submit Decision
+              </button>
+            </form>
+          </div>
+        </div>
+      }
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-bottom-0 pt-3">
+          <h5 class="fw-bold mb-0">Risk History</h5>
+        </div>
+        <div class="card-body">
+          @if (app.riskHistory.length === 0) {
+            <p class="text-muted small mb-0">No review decisions yet.</p>
+          } @else {
+            @for (decision of app.riskHistory; track decision.id) {
+              <div class="border-start border-3 ps-3 mb-3"
+                   [class.border-success]="decision.decision === 'APPROVED'"
+                   [class.border-danger]="decision.decision === 'REJECTED'">
+                <div class="d-flex justify-content-between align-items-start">
+                  <span class="badge" [class.bg-success]="decision.decision === 'APPROVED'"
+                        [class.bg-danger]="decision.decision === 'REJECTED'">
+                    {{ decision.decision }}
+                  </span>
+                  <small class="text-muted">{{ decision.createdAt | date:'short' }}</small>
+                </div>
+                <div class="small fw-semibold mt-1">{{ decision.reviewerName }}</div>
+                <div class="small text-muted mt-1">{{ decision.notes }}</div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
